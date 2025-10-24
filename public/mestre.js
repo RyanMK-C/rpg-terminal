@@ -1,4 +1,4 @@
-const socket = io();
+const socket = io("https://omega-terminal.onrender.com");
 const log = document.getElementById('log');
 const msg = document.getElementById('msg');
 const sendBtn = document.getElementById('send');
@@ -35,3 +35,4 @@ function appendLog(text) {
   log.appendChild(line);
   log.scrollTop = log.scrollHeight;
 }
+
