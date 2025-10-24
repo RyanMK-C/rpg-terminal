@@ -17,7 +17,7 @@
       justify-content: center;
       align-items: center;
     }
-    #login, #terminal, #painel {
+    #login, #terminal, #painel, #glitched {
       display: none;
       width: 100%;
       max-width: 800px;
@@ -61,6 +61,31 @@
       margin-top: 10px;
       border-radius: 4px;
     }
+    /* Tela GLITCHED */
+    #glitched {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.96);
+      color: #00ff88;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      text-align: center;
+    }
+    #glitched h1 {
+      font-size: 3rem;
+      color: #ff4040;
+      letter-spacing: 3px;
+      margin-bottom: 10px;
+      animation: flicker 0.2s infinite alternate;
+    }
+    @keyframes flicker {
+      from { opacity: 1; }
+      to { opacity: 0.7; }
+    }
   </style>
 </head>
 <body>
@@ -88,108 +113,145 @@
       <select id="efeito">
         <option value="alerta">Alerta Vermelho</option>
         <option value="limpar">Limpar tela</option>
+        <option value="glitched">Ativar GLITCHED</option>
       </select>
       <button id="aplicar">Aplicar Efeito</button>
       <div class="log" id="log"></div>
     </div>
   </div>
 
+  <!-- Tela de GLITCHED -->
+  <div id="glitched">
+    <h1>GLITCHED</h1>
+    <p>Insira chave de boot:</p>
+    <input id="boot" type="password" placeholder="Calamitas" />
+  </div>
+
+  <!-- Áudio local -->
+  <audio id="interferencia" src="glitch-sound-333220.mp3" preload="auto"></audio>
+
   <script src="/socket.io/socket.io.js"></script>
-<script>
-  const socket = io("https://omega-terminal.onrender.com", {
-    transports: ["websocket", "polling"]
-  });
+  <script>
+    const socket = io("https://omega-terminal.onrender.com", {
+      transports: ["websocket", "polling"]
+    });
 
-  const login = document.getElementById("login");
-  const terminal = document.getElementById("terminal");
-  const painel = document.getElementById("painel");
-  const senhaInput = document.getElementById("senha");
-  const entrarBtn = document.getElementById("entrar");
-  const tela = document.getElementById("tela");
-  const entrada = document.getElementById("entrada");
-  const msg = document.getElementById("msg");
-  const enviar = document.getElementById("enviar");
-  const efeito = document.getElementById("efeito");
-  const aplicar = document.getElementById("aplicar");
-  const logBox = document.getElementById("log");
+    const login = document.getElementById("login");
+    const terminal = document.getElementById("terminal");
+    const painel = document.getElementById("painel");
+    const senhaInput = document.getElementById("senha");
+    const entrarBtn = document.getElementById("entrar");
+    const tela = document.getElementById("tela");
+    const entrada = document.getElementById("entrada");
+    const msg = document.getElementById("msg");
+    const enviar = document.getElementById("enviar");
+    const efeito = document.getElementById("efeito");
+    const aplicar = document.getElementById("aplicar");
+    const logBox = document.getElementById("log");
+    const glitched = document.getElementById("glitched");
+    const bootInput = document.getElementById("boot");
+    const interferencia = document.getElementById("interferencia");
 
-  let tipoUsuario = "jogador";
+    let tipoUsuario = "jogador";
 
-  entrarBtn.addEventListener("click", () => {
-    const senha = senhaInput.value.trim();
-    if (senha === "Ozymandias") {
-      tipoUsuario = "jogador";
-      login.style.display = "none";
-      terminal.style.display = "block";
-    } else if (senha === "Mestre") {
-      tipoUsuario = "mestre";
-      login.style.display = "none";
-      painel.style.display = "block";
-      addLog("✅ Painel do Mestre conectado.");
-    } else {
-      alert("Senha incorreta!");
-    }
-  });
+    entrarBtn.addEventListener("click", () => {
+      const senha = senhaInput.value.trim();
+      if (senha === "Ozymandias") {
+        tipoUsuario = "jogador";
+        login.style.display = "none";
+        terminal.style.display = "block";
+      } else if (senha === "Mestre") {
+        tipoUsuario = "mestre";
+        login.style.display = "none";
+        painel.style.display = "block";
+        addLog("✅ Painel do Mestre conectado.");
+      } else {
+        alert("Senha incorreta!");
+      }
+    });
 
-  // Jogador envia mensagem
-  entrada?.addEventListener("keydown", e => {
-    if (e.key === "Enter" && entrada.value.trim()) {
-      const texto = entrada.value.trim();
-      socket.emit("mensagem", { tipo: "jogador", texto });
-      entrada.value = "";
-    }
-  });
+    // Jogador envia mensagem
+    entrada?.addEventListener("keydown", e => {
+      if (e.key === "Enter" && entrada.value.trim()) {
+        const texto = entrada.value.trim();
+        socket.emit("mensagem", { tipo: "jogador", texto });
+        entrada.value = "";
+      }
+    });
 
-  // Mestre envia mensagem
-  enviar?.addEventListener("click", () => {
-    const texto = msg.value.trim();
-    if (texto) {
-      socket.emit("mensagem", { tipo: "mestre", texto });
-      addLog(`???: ${texto}`);
-      msg.value = "";
-    }
-  });
+    // Mestre envia mensagem
+    enviar?.addEventListener("click", () => {
+      const texto = msg.value.trim();
+      if (texto) {
+        socket.emit("mensagem", { tipo: "mestre", texto });
+        addLog(`???: ${texto}`);
+        msg.value = "";
+      }
+    });
 
-  // Mestre aplica efeito
-  aplicar?.addEventListener("click", () => {
-    const effect = efeito.value;
-    socket.emit("efeito", effect);
-    addLog(`Efeito aplicado: ${effect}`);
-  });
+    // Mestre aplica efeito
+    aplicar?.addEventListener("click", () => {
+      const effect = efeito.value;
+      socket.emit("efeito", { tipo: "mestre", effect });
+      addLog(`Efeito aplicado: ${effect}`);
+    });
 
-  // Receber mensagens (para todos os tipos)
-  socket.on("mensagem", ({ tipo, texto }) => {
-    const prefix = tipo === "mestre" ? "???" : "Usuário";
+    // Receber mensagens
+    socket.on("mensagem", ({ tipo, texto }) => {
+      const prefix = tipo === "mestre" ? "???" : "Usuário";
+      if (terminal.style.display === "block") {
+        tela.innerHTML += `\n${prefix}: ${texto}`;
+        tela.scrollTop = tela.scrollHeight;
+      }
+      if (painel.style.display === "block") addLog(`${prefix}: ${texto}`);
+    });
 
-    // Jogador: mostra na tela do terminal
-    if (terminal.style.display === "block") {
-      tela.innerHTML += `\n${prefix}: ${texto}`;
-      tela.scrollTop = tela.scrollHeight;
-    }
+    // Receber efeitos
+    socket.on("efeito", ({ tipo, effect }) => {
+      // Jogadores reagem a todos, Mestre ignora o glitch
+      if (tipo === "mestre") {
+        if (effect === "alerta") alerta();
+        if (effect === "limpar") limparTela();
+        if (effect === "glitched" && tipoUsuario !== "mestre") ativarGlitched();
+      }
+    });
 
-    // Mestre: mostra no painel de logs
-    if (painel.style.display === "block") {
-      addLog(`${prefix}: ${texto}`);
-    }
-  });
-
-  // Efeitos simples
-  socket.on("efeito", effect => {
-    if (effect === "alerta") {
+    // Funções de efeitos
+    function alerta() {
       document.body.style.backgroundColor = "#400000";
       setTimeout(() => document.body.style.backgroundColor = "black", 2000);
-    } else if (effect === "limpar") {
+    }
+
+    function limparTela() {
       if (tela) tela.innerHTML = "";
     }
-  });
 
-  function addLog(text) {
-    const div = document.createElement("div");
-    div.textContent = text;
-    logBox.appendChild(div);
-    logBox.scrollTop = logBox.scrollHeight;
-  }
-</script>
+    // GLITCHED apenas para jogadores
+    function ativarGlitched() {
+      interferencia.currentTime = 0;
+      interferencia.loop = true;
+      interferencia.play().catch(() => {});
+      glitched.style.display = "flex";
+      terminal.style.display = "none";
+    }
+
+    // Jogador insere chave de boot
+    bootInput.addEventListener("keydown", e => {
+      if (e.key === "Enter" && bootInput.value.trim() === "Calamitas") {
+        interferencia.pause();
+        glitched.style.display = "none";
+        terminal.style.display = "block";
+        bootInput.value = "";
+      }
+    });
+
+    // Função log (painel do mestre)
+    function addLog(text) {
+      const div = document.createElement("div");
+      div.textContent = text;
+      logBox.appendChild(div);
+      logBox.scrollTop = logBox.scrollHeight;
+    }
+  </script>
 </body>
 </html>
-
