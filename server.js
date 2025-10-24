@@ -11,29 +11,27 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-// Servir arquivos estáticos da pasta public
 app.use(express.static(path.join(__dirname, "public")));
 
-// Conexão dos jogadores
 io.on("connection", socket => {
   console.log("Novo jogador conectado:", socket.id);
 
-  // Mensagens enviadas pelo mestre
-  socket.on("mensagem-mestre", text => {
-    io.emit("mensagem", text); // envia para todos os jogadores
+  socket.on("mensagem", ({ tipo, texto }) => {
+    if (tipo === "mestre") {
+      io.emit("mensagem", { tipo: "mestre", texto });
+      console.log(`[MESTRE]: ${texto}`);
+    } else {
+      io.emit("mensagem", { tipo: "jogador", texto });
+      console.log(`[PLAYER]: ${texto}`);
+    }
   });
 
-  // Efeitos visuais
   socket.on("efeito", effect => {
     io.emit("efeito", effect);
   });
 
-  // Logs do jogador
-  socket.on("log", msg => {
-    console.log(`[LOG] ${msg}`);
-  });
+  socket.on("log", msg => console.log(`[LOG] ${msg}`));
 });
 
-// Porta dinâmica do Render
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
