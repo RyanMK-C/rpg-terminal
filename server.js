@@ -16,7 +16,7 @@ app.use(express.json());
 
 // Rota principal (serve o index.html)
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "mestre.html"));
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 // Exemplo de rota de API (opcional, pra teste)
@@ -28,4 +28,5 @@ app.get("/api/status", (req, res) => {
 app.listen(PORT, () => {
   console.log(`✅ Servidor rodando na porta ${PORT}`);
 });
+
 
