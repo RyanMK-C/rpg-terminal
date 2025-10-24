@@ -1,4 +1,4 @@
-const socket = io();
+const socket = io("https://omega-terminal.onrender.com");
 
 const terminal = document.body;
 let typing = false;
@@ -85,3 +85,4 @@ function alertEffect() {
 typeText("Conectando ao servidor do Mestre...", 50).then(() => {
   socket.emit('log', 'Jogador conectado ao terminal.');
 });
+
