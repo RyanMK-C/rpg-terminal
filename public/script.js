@@ -30,20 +30,20 @@ function scrollToBottom() {
 }
 
 // Recebe mensagem do mestre
-socket.on('mensagem', async text => {
+socket.on("mensagem", async text => {
   await typeText(text);
 });
 
 // Efeitos visuais do mestre
-socket.on('efeito', effect => {
+socket.on("efeito", effect => {
   switch (effect) {
-    case 'glitch':
+    case "glitch":
       glitchEffect();
       break;
-    case 'alerta':
+    case "alerta":
       alertEffect();
       break;
-    case 'limpar':
+    case "limpar":
       document.body.innerHTML = "";
       break;
   }
@@ -51,15 +51,15 @@ socket.on('efeito', effect => {
 
 // Efeito de glitch (flicker verde)
 function glitchEffect() {
-  const flicker = document.createElement('div');
-  flicker.style.position = 'fixed';
+  const flicker = document.createElement("div");
+  flicker.style.position = "fixed";
   flicker.style.top = 0;
   flicker.style.left = 0;
-  flicker.style.width = '100vw';
-  flicker.style.height = '100vh';
-  flicker.style.background = 'rgba(0,255,136,0.05)';
+  flicker.style.width = "100vw";
+  flicker.style.height = "100vh";
+  flicker.style.background = "rgba(0,255,136,0.05)";
   flicker.style.zIndex = 9999;
-  flicker.style.pointerEvents = 'none';
+  flicker.style.pointerEvents = "none";
   document.body.appendChild(flicker);
 
   let flashes = 0;
@@ -78,18 +78,20 @@ function alertEffect() {
   let flashes = 0;
   const interval = setInterval(() => {
     document.body.style.backgroundColor =
-      document.body.style.backgroundColor === 'black' ? '#400000' : 'black';
+      document.body.style.backgroundColor === "black" ? "#400000" : "black";
     flashes++;
     if (flashes > 10) {
       clearInterval(interval);
-      document.body.style.backgroundColor = 'black';
+      document.body.style.backgroundColor = "black";
     }
   }, 120);
 }
 
-// Mensagem inicial de boas-vindas
-typeText("Conectando ao servidor do Mestre...", 50).then(() => {
-  socket.emit('log', 'Jogador conectado ao terminal.');
+// Mensagem inicial
+typeText("Conectando ao servidor do Mestre...", 50);
+
+// Quando conectar de fato
+socket.on("connect", async () => {
+  await typeText("\nConexão estabelecida com o Mestre.\n", 35);
+  socket.emit("log", "Jogador conectado ao terminal.");
 });
-
-
