@@ -95,92 +95,101 @@
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
-  <script>
-    const socket = io("https://omega-terminal.onrender.com", {
-      transports: ["websocket", "polling"]
-    });
+<script>
+  const socket = io("https://omega-terminal.onrender.com", {
+    transports: ["websocket", "polling"]
+  });
 
-    const login = document.getElementById("login");
-    const terminal = document.getElementById("terminal");
-    const painel = document.getElementById("painel");
-    const senhaInput = document.getElementById("senha");
-    const entrarBtn = document.getElementById("entrar");
-    const tela = document.getElementById("tela");
-    const entrada = document.getElementById("entrada");
-    const msg = document.getElementById("msg");
-    const enviar = document.getElementById("enviar");
-    const efeito = document.getElementById("efeito");
-    const aplicar = document.getElementById("aplicar");
-    const logBox = document.getElementById("log");
+  const login = document.getElementById("login");
+  const terminal = document.getElementById("terminal");
+  const painel = document.getElementById("painel");
+  const senhaInput = document.getElementById("senha");
+  const entrarBtn = document.getElementById("entrar");
+  const tela = document.getElementById("tela");
+  const entrada = document.getElementById("entrada");
+  const msg = document.getElementById("msg");
+  const enviar = document.getElementById("enviar");
+  const efeito = document.getElementById("efeito");
+  const aplicar = document.getElementById("aplicar");
+  const logBox = document.getElementById("log");
 
-    let tipoUsuario = "jogador";
+  let tipoUsuario = "jogador";
 
-    entrarBtn.addEventListener("click", () => {
-      const senha = senhaInput.value.trim();
-      if (senha === "Ozymandias") {
-        tipoUsuario = "jogador";
-        login.style.display = "none";
-        terminal.style.display = "block";
-      } else if (senha === "Mestre") {
-        tipoUsuario = "mestre";
-        login.style.display = "none";
-        painel.style.display = "block";
-      } else {
-        alert("Senha incorreta!");
-      }
-    });
-
-    // Jogador envia mensagem
-    entrada?.addEventListener("keydown", e => {
-      if (e.key === "Enter" && entrada.value.trim()) {
-        const texto = entrada.value.trim();
-        socket.emit("mensagem", { tipo: "jogador", texto });
-        entrada.value = "";
-      }
-    });
-
-    // Mestre envia mensagem
-    enviar?.addEventListener("click", () => {
-      const texto = msg.value.trim();
-      if (texto) {
-        socket.emit("mensagem", { tipo: "mestre", texto });
-        addLog(`???: ${texto}`);
-        msg.value = "";
-      }
-    });
-
-    // Mestre aplica efeito
-    aplicar?.addEventListener("click", () => {
-      const effect = efeito.value;
-      socket.emit("efeito", effect);
-      addLog(`Efeito aplicado: ${effect}`);
-    });
-
-    // Receber mensagens
-    socket.on("mensagem", ({ tipo, texto }) => {
-      if (terminal.style.display === "block") {
-        const prefix = tipo === "mestre" ? "???" : "Usuário";
-        tela.innerHTML += `\n${prefix}: ${texto}`;
-        tela.scrollTop = tela.scrollHeight;
-      }
-    });
-
-    // Efeitos simples
-    socket.on("efeito", effect => {
-      if (effect === "alerta") {
-        document.body.style.backgroundColor = "#400000";
-        setTimeout(() => document.body.style.backgroundColor = "black", 2000);
-      } else if (effect === "limpar") {
-        if (tela) tela.innerHTML = "";
-      }
-    });
-
-    function addLog(text) {
-      const div = document.createElement("div");
-      div.textContent = text;
-      logBox.appendChild(div);
-      logBox.scrollTop = logBox.scrollHeight;
+  entrarBtn.addEventListener("click", () => {
+    const senha = senhaInput.value.trim();
+    if (senha === "Ozymandias") {
+      tipoUsuario = "jogador";
+      login.style.display = "none";
+      terminal.style.display = "block";
+    } else if (senha === "Mestre") {
+      tipoUsuario = "mestre";
+      login.style.display = "none";
+      painel.style.display = "block";
+      addLog("✅ Painel do Mestre conectado.");
+    } else {
+      alert("Senha incorreta!");
     }
-  </script>
+  });
+
+  // Jogador envia mensagem
+  entrada?.addEventListener("keydown", e => {
+    if (e.key === "Enter" && entrada.value.trim()) {
+      const texto = entrada.value.trim();
+      socket.emit("mensagem", { tipo: "jogador", texto });
+      entrada.value = "";
+    }
+  });
+
+  // Mestre envia mensagem
+  enviar?.addEventListener("click", () => {
+    const texto = msg.value.trim();
+    if (texto) {
+      socket.emit("mensagem", { tipo: "mestre", texto });
+      addLog(`???: ${texto}`);
+      msg.value = "";
+    }
+  });
+
+  // Mestre aplica efeito
+  aplicar?.addEventListener("click", () => {
+    const effect = efeito.value;
+    socket.emit("efeito", effect);
+    addLog(`Efeito aplicado: ${effect}`);
+  });
+
+  // Receber mensagens (para todos os tipos)
+  socket.on("mensagem", ({ tipo, texto }) => {
+    const prefix = tipo === "mestre" ? "???" : "Usuário";
+
+    // Jogador: mostra na tela do terminal
+    if (terminal.style.display === "block") {
+      tela.innerHTML += `\n${prefix}: ${texto}`;
+      tela.scrollTop = tela.scrollHeight;
+    }
+
+    // Mestre: mostra no painel de logs
+    if (painel.style.display === "block") {
+      addLog(`${prefix}: ${texto}`);
+    }
+  });
+
+  // Efeitos simples
+  socket.on("efeito", effect => {
+    if (effect === "alerta") {
+      document.body.style.backgroundColor = "#400000";
+      setTimeout(() => document.body.style.backgroundColor = "black", 2000);
+    } else if (effect === "limpar") {
+      if (tela) tela.innerHTML = "";
+    }
+  });
+
+  function addLog(text) {
+    const div = document.createElement("div");
+    div.textContent = text;
+    logBox.appendChild(div);
+    logBox.scrollTop = logBox.scrollHeight;
+  }
+</script>
 </body>
 </html>
+
