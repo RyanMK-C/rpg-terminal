@@ -1,150 +1,186 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8">
   <title>Terminal RPG</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <style>
-    :root {
-      --bg: #000;
-      --fg: #9fff6f;
-      --muted: #6b8f5b;
-      --accent: #00ff88;
-    }
-    html,body{
-      height:100%;
-      margin:0;
-      background:var(--bg);
-      color:var(--fg);
-      font-family: "Courier New", Courier, monospace;
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
-    }
-
-    /* Layout containers */
-    #login, #terminal {
-      box-sizing: border-box;
-      height:100vh;
-      display:flex;
-      flex-direction:column;
-      justify-content:center;
-      align-items:center;
-      gap:12px;
-      padding:20px;
-    }
-    #login { display:flex; }
-    #terminal { display:none; padding:18px; align-items:flex-start; }
-
-    /* Login UI */
-    .card {
-      background: rgba(0,0,0,0.6);
-      border: 1px solid rgba(0,255,136,0.06);
-      padding:18px;
-      width: min(760px, 95%);
-      text-align:center;
-      border-radius:6px;
-    }
-    .card p { margin: 6px 0 12px 0; color: var(--muted); }
-
-    input[type="password"], input[type="text"] {
-      background: black;
-      color: var(--fg);
-      border: 1px solid rgba(0,255,136,0.15);
-      outline: none;
-      padding:10px 12px;
-      width: 100%;
-      box-sizing: border-box;
+    body {
+      background: #000;
+      color: #00ff88;
       font-family: monospace;
-      font-size: 1rem;
-      border-radius:4px;
+      margin: 0;
+      padding: 20px;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
     }
-
-    /* Terminal */
-    #terminalWrap {
-      width: min(1000px, 98%);
-      height: 86vh;
-      border: 1px solid rgba(0,255,136,0.06);
-      background: linear-gradient(180deg, rgba(0,0,0,0.92), rgba(0,0,0,0.98));
-      padding:12px;
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-      box-sizing:border-box;
-      border-radius:6px;
+    #login, #terminal, #painel {
+      display: none;
+      width: 100%;
+      max-width: 800px;
+    }
+    #login {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    input, textarea, select, button {
+      background: #111;
+      color: #9fff6f;
+      border: 1px solid #00ff88;
+      font-family: monospace;
+      padding: 8px;
+      border-radius: 4px;
     }
     #tela {
-      flex:1;
-      width:100%;
-      overflow:auto;
-      white-space:pre-wrap;
-      line-height:1.3;
-      font-size: 16px;
-    }
-    #controls {
-      display:flex;
-      gap:8px;
-      align-items:center;
+      background: #010;
+      padding: 10px;
+      height: 60vh;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      border-radius: 4px;
     }
     #entrada {
-      flex:1;
+      width: 100%;
+      margin-top: 10px;
     }
-    .hint { color: var(--muted); font-size:0.9rem; }
-
-    /* Glitch overlay */
-    #glitch {
-      display:none;
-      position:fixed;
-      inset:0;
-      z-index:9999;
-      color:var(--accent);
-      font-family:monospace;
-      pointer-events:none;
-      background:rgba(0,0,0,0.0);
-      mix-blend-mode: screen;
-      text-align:center;
-      padding-top:18vh;
-      font-size:2.6rem;
-      letter-spacing:4px;
-      opacity:0.85;
-      animation:glitch 0.28s infinite;
+    #painel .box {
+      background: #050;
+      padding: 20px;
+      border-radius: 8px;
     }
-    @keyframes glitch {
-      0%{text-shadow:2px 0 var(--accent);}
-      50%{text-shadow:-2px 0 #33ff88;}
-      100%{text-shadow:2px 0 var(--accent);}
-    }
-
-    /* small screens */
-    @media (max-width:560px){
-      #glitch{font-size:1.6rem;padding-top:12vh}
-      #terminalWrap{height:80vh}
-      #tela{font-size:14px}
+    #painel .log {
+      background: #020;
+      padding: 10px;
+      height: 200px;
+      overflow-y: auto;
+      margin-top: 10px;
+      border-radius: 4px;
     }
   </style>
 </head>
 <body>
-  <div id="glitch">▒▒▒▒▒ GLITCH MODE ▒▒▒▒▒</div>
-
+  <!-- Login -->
   <div id="login">
-    <div class="card">
-      <h2 style="margin:0;color:var(--fg)">Terminal RPG — Acesso</h2>
-      <p>Digite a senha do Mestre para entrar no terminal</p>
-      <input id="senha" type="password" placeholder="Senha (ex: Ozymandias)" autocomplete="off" />
-      <p class="hint">Pressione Enter para confirmar. Senha correta: <em>Ozymandias</em></p>
-    </div>
+    <h2>Autenticação</h2>
+    <input id="senha" type="password" placeholder="Digite a senha..." />
+    <button id="entrar">Entrar</button>
+    <small>Jogador: Ozymandias | Mestre: Mestre</small>
   </div>
 
+  <!-- Terminal Jogador -->
   <div id="terminal">
-    <div id="terminalWrap">
-      <div id="tela" aria-live="polite"></div>
-      <div id="controls">
-        <input id="entrada" type="text" placeholder="Digite comando e pressione Enter..." autocomplete="off" />
-        <div style="width:120px;text-align:right;color:var(--muted);font-size:0.9rem">Status: <span id="status">desconectado</span></div>
-      </div>
+    <div id="tela"></div>
+    <input id="entrada" type="text" placeholder="Digite sua mensagem..." />
+  </div>
+
+  <!-- Painel Mestre -->
+  <div id="painel">
+    <div class="box">
+      <h2>Painel do Mestre</h2>
+      <textarea id="msg" placeholder="Mensagem para enviar..."></textarea><br>
+      <button id="enviar">Enviar Mensagem</button>
+      <h3>Efeitos</h3>
+      <select id="efeito">
+        <option value="alerta">Alerta Vermelho</option>
+        <option value="limpar">Limpar tela</option>
+      </select>
+      <button id="aplicar">Aplicar Efeito</button>
+      <div class="log" id="log"></div>
     </div>
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
-  <script src="script.js"></script>
+  <script>
+    const socket = io("https://omega-terminal.onrender.com", {
+      transports: ["websocket", "polling"]
+    });
+
+    const login = document.getElementById("login");
+    const terminal = document.getElementById("terminal");
+    const painel = document.getElementById("painel");
+    const senhaInput = document.getElementById("senha");
+    const entrarBtn = document.getElementById("entrar");
+    const tela = document.getElementById("tela");
+    const entrada = document.getElementById("entrada");
+    const msg = document.getElementById("msg");
+    const enviar = document.getElementById("enviar");
+    const efeito = document.getElementById("efeito");
+    const aplicar = document.getElementById("aplicar");
+    const logBox = document.getElementById("log");
+
+    let tipoUsuario = "jogador";
+
+    entrarBtn.addEventListener("click", () => {
+      const senha = senhaInput.value.trim();
+      if (senha === "Ozymandias") {
+        tipoUsuario = "jogador";
+        login.style.display = "none";
+        terminal.style.display = "block";
+      } else if (senha === "Mestre") {
+        tipoUsuario = "mestre";
+        login.style.display = "none";
+        painel.style.display = "block";
+      } else {
+        alert("Senha incorreta!");
+      }
+    });
+
+    // Jogador envia mensagem
+    entrada?.addEventListener("keydown", e => {
+      if (e.key === "Enter" && entrada.value.trim()) {
+        const texto = entrada.value.trim();
+        socket.emit("mensagem", { tipo: "jogador", texto });
+        entrada.value = "";
+      }
+    });
+
+    // Mestre envia mensagem
+    enviar?.addEventListener("click", () => {
+      const texto = msg.value.trim();
+      if (texto) {
+        socket.emit("mensagem", { tipo: "mestre", texto });
+        addLog(`???: ${texto}`);
+        msg.value = "";
+      }
+    });
+
+    // Mestre aplica efeito
+    aplicar?.addEventListener("click", () => {
+      const effect = efeito.value;
+      socket.emit("efeito", effect);
+      addLog(`Efeito aplicado: ${effect}`);
+    });
+
+    // Receber mensagens
+    socket.on("mensagem", ({ tipo, texto }) => {
+      if (terminal.style.display === "block") {
+        const prefix = tipo === "mestre" ? "???" : "Usuário";
+        tela.innerHTML += `\n${prefix}: ${texto}`;
+        tela.scrollTop = tela.scrollHeight;
+      }
+    });
+
+    // Efeitos simples
+    socket.on("efeito", effect => {
+      if (effect === "alerta") {
+        document.body.style.backgroundColor = "#400000";
+        setTimeout(() => document.body.style.backgroundColor = "black", 2000);
+      } else if (effect === "limpar") {
+        if (tela) tela.innerHTML = "";
+      }
+    });
+
+    function addLog(text) {
+      const div = document.createElement("div");
+      div.textContent = text;
+      logBox.appendChild(div);
+      logBox.scrollTop = logBox.scrollHeight;
+    }
+  </script>
 </body>
 </html>
