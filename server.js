@@ -1,59 +1,30 @@
-// ===== RPG TERMINAL SERVER =====
-// Feito para Render / GitHub / Node.js 18+
+import express from "express";
+import path from "path";
+import { fileURLToPath } from "url";
 
-const express = require("express");
-const http = require("http");
-const { Server } = require("socket.io");
-const path = require("path");
-
-// Inicialização
+// Configurações básicas
 const app = express();
-const server = http.createServer(app);
-const io = new Server(server);
+const PORT = process.env.PORT || 3000;
 
-// Servir arquivos da pasta "public"
+// Corrige __dirname no modo ESM
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Middleware para servir arquivos estáticos
 app.use(express.static(path.join(__dirname, "public")));
+app.use(express.json());
 
-// Rota principal (terminal do jogador)
+// Rota principal (serve o index.html)
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// Rota do mestre
-app.get("/mestre.html", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "mestre.html"));
+// Exemplo de rota de API (opcional, pra teste)
+app.get("/api/status", (req, res) => {
+  res.json({ status: "online", message: "Servidor está rodando corretamente!" });
 });
 
-// Conexões de socket
-io.on("connection", socket => {
-  console.log("🟢 Um jogador se conectou.");
-
-  // Mestre envia mensagem -> todos os terminais recebem
-  socket.on("mensagem-mestre", msg => {
-    io.emit("mensagem", msg);
-    console.log(`📤 Mestre enviou: ${msg}`);
-  });
-
-  // Mestre aplica efeito visual
-  socket.on("efeito", effect => {
-    io.emit("efeito", effect);
-    console.log(`⚡ Efeito aplicado: ${effect}`);
-  });
-
-  // Logs de eventos dos jogadores
-  socket.on("log", data => {
-    console.log(`📘 LOG do jogador: ${data}`);
-  });
-
-  socket.on("disconnect", () => {
-    console.log("🔴 Um jogador desconectou.");
-  });
-});
-
-// Porta (Render define automaticamente, local usa 3000)
-const PORT = process.env.PORT || 3000;
-
-server.listen(PORT, () => {
-  console.log(`🚀 Servidor do RPG Terminal rodando na porta ${PORT}`);
-  console.log("🌐 Acesse / para jogador e /mestre.html para mestre");
+// Inicializa o servidor
+app.listen(PORT, () => {
+  console.log(`✅ Servidor rodando na porta ${PORT}`);
 });
