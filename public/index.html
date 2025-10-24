@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <title>Terminal RPG</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
       background: #000;
@@ -13,21 +13,23 @@
       padding: 20px;
       height: 100vh;
       display: flex;
-      flex-direction: column;
       justify-content: center;
       align-items: center;
     }
+
     #login, #terminal, #painel, #glitched {
       display: none;
       width: 100%;
       max-width: 800px;
     }
+
     #login {
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 10px;
     }
+
     input, textarea, select, button {
       background: #111;
       color: #9fff6f;
@@ -36,6 +38,7 @@
       padding: 8px;
       border-radius: 4px;
     }
+
     #tela {
       background: #010;
       padding: 10px;
@@ -44,15 +47,18 @@
       white-space: pre-wrap;
       border-radius: 4px;
     }
+
     #entrada {
       width: 100%;
       margin-top: 10px;
     }
+
     #painel .box {
       background: #050;
       padding: 20px;
       border-radius: 8px;
     }
+
     #painel .log {
       background: #020;
       padding: 10px;
@@ -61,20 +67,21 @@
       margin-top: 10px;
       border-radius: 4px;
     }
-    /* Tela GLITCHED */
+
     #glitched {
       position: fixed;
       top: 0; left: 0;
       width: 100%; height: 100%;
-      background: rgba(0,0,0,0.96);
+      background: rgba(0,0,0,0.97);
       color: #00ff88;
-      display: flex;
+      display: none;
       flex-direction: column;
       justify-content: center;
       align-items: center;
       z-index: 9999;
       text-align: center;
     }
+
     #glitched h1 {
       font-size: 3rem;
       color: #ff4040;
@@ -82,6 +89,7 @@
       margin-bottom: 10px;
       animation: flicker 0.2s infinite alternate;
     }
+
     @keyframes flicker {
       from { opacity: 1; }
       to { opacity: 0.7; }
@@ -89,7 +97,7 @@
   </style>
 </head>
 <body>
-  <!-- Login -->
+  <!-- LOGIN -->
   <div id="login">
     <h2>Autenticação</h2>
     <input id="senha" type="password" placeholder="Digite a senha..." />
@@ -97,13 +105,13 @@
     <small>Jogador: Ozymandias | Mestre: Mestre</small>
   </div>
 
-  <!-- Terminal Jogador -->
+  <!-- TERMINAL -->
   <div id="terminal">
     <div id="tela"></div>
     <input id="entrada" type="text" placeholder="Digite sua mensagem..." />
   </div>
 
-  <!-- Painel Mestre -->
+  <!-- PAINEL DO MESTRE -->
   <div id="painel">
     <div class="box">
       <h2>Painel do Mestre</h2>
@@ -112,7 +120,7 @@
       <h3>Efeitos</h3>
       <select id="efeito">
         <option value="alerta">Alerta Vermelho</option>
-        <option value="limpar">Limpar tela</option>
+        <option value="limpar">Limpar Tela</option>
         <option value="glitched">Ativar GLITCHED</option>
       </select>
       <button id="aplicar">Aplicar Efeito</button>
@@ -120,18 +128,18 @@
     </div>
   </div>
 
-  <!-- Tela de GLITCHED -->
+  <!-- TELA GLITCHED -->
   <div id="glitched">
     <h1>GLITCHED</h1>
     <p>Insira chave de boot:</p>
     <input id="boot" type="password" placeholder="Calamitas" />
   </div>
 
-  <!-- Áudio local -->
   <audio id="interferencia" src="glitch-sound-333220.mp3" preload="auto"></audio>
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
+  window.addEventListener("DOMContentLoaded", () => {
     const socket = io("https://omega-terminal.onrender.com", {
       transports: ["websocket", "polling"]
     });
@@ -152,8 +160,9 @@
     const bootInput = document.getElementById("boot");
     const interferencia = document.getElementById("interferencia");
 
-    let tipoUsuario = "jogador";
+    let tipoUsuario = null;
 
+    // 🔹 Login
     entrarBtn.addEventListener("click", () => {
       const senha = senhaInput.value.trim();
       if (senha === "Ozymandias") {
@@ -170,7 +179,7 @@
       }
     });
 
-    // Jogador envia mensagem
+    // 🔹 Jogador envia mensagem
     entrada?.addEventListener("keydown", e => {
       if (e.key === "Enter" && entrada.value.trim()) {
         const texto = entrada.value.trim();
@@ -179,7 +188,7 @@
       }
     });
 
-    // Mestre envia mensagem
+    // 🔹 Mestre envia mensagem
     enviar?.addEventListener("click", () => {
       const texto = msg.value.trim();
       if (texto) {
@@ -189,69 +198,67 @@
       }
     });
 
-    // Mestre aplica efeito
+    // 🔹 Mestre aplica efeito
     aplicar?.addEventListener("click", () => {
       const effect = efeito.value;
       socket.emit("efeito", { tipo: "mestre", effect });
       addLog(`Efeito aplicado: ${effect}`);
     });
 
-    // Receber mensagens
+    // 🔹 Recebe mensagens
     socket.on("mensagem", ({ tipo, texto }) => {
       const prefix = tipo === "mestre" ? "???" : "Usuário";
       if (terminal.style.display === "block") {
-        tela.innerHTML += `\n${prefix}: ${texto}`;
+        tela.textContent += `\n${prefix}: ${texto}`;
         tela.scrollTop = tela.scrollHeight;
       }
       if (painel.style.display === "block") addLog(`${prefix}: ${texto}`);
     });
 
-    // Receber efeitos
+    // 🔹 Recebe efeitos
     socket.on("efeito", ({ tipo, effect }) => {
-      // Jogadores reagem a todos, Mestre ignora o glitch
       if (tipo === "mestre") {
         if (effect === "alerta") alerta();
         if (effect === "limpar") limparTela();
-        if (effect === "glitched" && tipoUsuario !== "mestre") ativarGlitched();
+        if (effect === "glitched" && tipoUsuario === "jogador") ativarGlitched();
       }
     });
 
-    // Funções de efeitos
+    // 🔹 Efeitos
     function alerta() {
       document.body.style.backgroundColor = "#400000";
       setTimeout(() => document.body.style.backgroundColor = "black", 2000);
     }
 
     function limparTela() {
-      if (tela) tela.innerHTML = "";
+      if (tela) tela.textContent = "";
     }
 
-    // GLITCHED apenas para jogadores
     function ativarGlitched() {
+      glitched.style.display = "flex";
+      terminal.style.display = "none";
       interferencia.currentTime = 0;
       interferencia.loop = true;
       interferencia.play().catch(() => {});
-      glitched.style.display = "flex";
-      terminal.style.display = "none";
     }
 
-    // Jogador insere chave de boot
+    // 🔹 Boot key
     bootInput.addEventListener("keydown", e => {
       if (e.key === "Enter" && bootInput.value.trim() === "Calamitas") {
         interferencia.pause();
         glitched.style.display = "none";
-        terminal.style.display = "block";
+        if (tipoUsuario === "jogador") terminal.style.display = "block";
         bootInput.value = "";
       }
     });
 
-    // Função log (painel do mestre)
     function addLog(text) {
       const div = document.createElement("div");
       div.textContent = text;
       logBox.appendChild(div);
       logBox.scrollTop = logBox.scrollHeight;
     }
+  });
   </script>
 </body>
 </html>
