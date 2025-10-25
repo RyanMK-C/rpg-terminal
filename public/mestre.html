@@ -2,80 +2,40 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Painel do Mestre — RPG Terminal</title>
-  <link rel="icon" href="data:,">
+  <title>Painel do Mestre</title>
   <style>
     body {
-      background-color: black;
-      color: #00ff88;
-      font-family: "Courier New", monospace;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-    }
-
-    header {
-      text-align: center;
-      font-size: 1.3rem;
-      padding: 10px;
-      border-bottom: 2px solid #00ff88;
-      text-shadow: 0 0 8px #00ff88;
-    }
-
-    #log {
-      flex: 1;
-      overflow-y: auto;
-      padding: 15px;
-      font-size: 1rem;
-      white-space: pre-wrap;
-      border-bottom: 2px solid #00ff88;
-    }
-
-    #controls {
-      padding: 15px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      background: #001a12;
-    }
-
-    input, button, select {
       background: black;
-      color: #00ff88;
-      border: 1px solid #00ff88;
-      font-family: "Courier New", monospace;
-      padding: 5px 8px;
-      border-radius: 4px;
+      color: lime;
+      font-family: monospace;
+      padding: 10px;
     }
-
-    button:hover {
-      background: #003322;
-      cursor: pointer;
+    #controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
     }
-
-    .glitch {
-      animation: glitch 1s infinite;
+    input, select, button {
+      background: black;
+      color: lime;
+      border: 1px solid lime;
+      padding: 5px;
+      font-family: monospace;
     }
-
-    @keyframes glitch {
-      0% { text-shadow: 2px 0 #00ff88; }
-      20% { text-shadow: -2px 0 #00ff88; }
-      40% { text-shadow: 2px 2px #00ff88; }
-      60% { text-shadow: -2px -2px #00ff88; }
-      100% { text-shadow: 2px 0 #00ff88; }
+    #log {
+      border: 1px solid lime;
+      padding: 10px;
+      height: 70vh;
+      overflow-y: auto;
     }
   </style>
 </head>
 <body>
-  <header class="glitch">⚡ PAINEL DO MESTRE ⚡</header>
-
-  <div id="log"></div>
+  <h2>Painel do Mestre</h2>
 
   <div id="controls">
-    <input id="msg" type="text" placeholder="Digite uma mensagem ou comando..." style="flex:1;">
+    <input id="msg" type="text" placeholder="Mensagem ou comando..." style="flex:1;">
     <button id="send">Enviar</button>
     <select id="effect">
       <option value="">Efeito...</option>
@@ -84,7 +44,13 @@
       <option value="limpar">Limpar Tela</option>
     </select>
     <button id="applyEffect">Aplicar</button>
+
+    <!-- 🔊 Upload de áudio -->
+    <input type="file" id="audioFile" accept="audio/*">
+    <button id="sendAudio">Enviar Áudio</button>
   </div>
+
+  <div id="log"></div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="mestre.js"></script>
