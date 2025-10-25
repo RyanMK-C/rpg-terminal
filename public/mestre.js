@@ -5,6 +5,7 @@ const socket = io("https://omega-terminal.onrender.com", {
   reconnectionAttempts: 5,
   reconnectionDelay: 2000
 });
+
 const log = document.getElementById('log');
 const msg = document.getElementById('msg');
 const sendBtn = document.getElementById('send');
@@ -35,12 +36,14 @@ socket.on('log', data => {
   appendLog(`[LOG] ${data}`);
 });
 
+// Função de log
 function appendLog(text) {
   const line = document.createElement('div');
   line.textContent = text;
   log.appendChild(line);
   log.scrollTop = log.scrollHeight;
 }
+
 // === Upload de áudio do mestre ===
 const audioInput = document.getElementById("audiofile");
 const sendAudioBtn = document.getElementById("sendAudio");
@@ -50,6 +53,7 @@ sendAudioBtn?.addEventListener("click", async () => {
     appendLog("⚠️ Nenhum arquivo selecionado.");
     return;
   }
+
   const file = audioInput.files[0];
   const formData = new FormData();
   formData.append("audio", file);
@@ -62,6 +66,3 @@ sendAudioBtn?.addEventListener("click", async () => {
     appendLog("Erro ao enviar áudio: " + err.message);
   }
 });
-
-
-
