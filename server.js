@@ -11,26 +11,37 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
+// Servir arquivos da pasta public
 app.use(express.static(path.join(__dirname, "public")));
 
 io.on("connection", socket => {
   console.log("Novo jogador conectado:", socket.id);
 
-  socket.on("mensagem", ({ tipo, texto }) => {
-    if (tipo === "mestre") {
-      io.emit("mensagem", { tipo: "mestre", texto });
-      console.log(`[MESTRE]: ${texto}`);
-    } else {
-      io.emit("mensagem", { tipo: "jogador", texto });
-      console.log(`[PLAYER]: ${texto}`);
-    }
+  // Mensagens enviadas pelo mestre
+  socket.on("mensagem-mestre", text => {
+    io.emit("mensagem", `???: ${text}`);
   });
 
+  // Mensagens de jogadores
+  socket.on("mensagem-jogador", text => {
+    io.emit("mensagem", text);
+  });
+
+  // Efeitos visuais
   socket.on("efeito", effect => {
     io.emit("efeito", effect);
   });
 
-  socket.on("log", msg => console.log(`[LOG] ${msg}`));
+  // Logs
+  socket.on("log", msg => {
+    console.log(`[LOG] ${msg}`);
+  });
+
+  // 🔊 Receber áudio do mestre e enviar para todos
+  socket.on("audio", ({ name, data }) => {
+    console.log(`[AUDIO] Recebido ${name} (${data.length} bytes)`);
+    io.emit("audio", { name, data });
+  });
 });
 
 const PORT = process.env.PORT || 3000;
