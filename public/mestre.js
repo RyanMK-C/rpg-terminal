@@ -41,5 +41,27 @@ function appendLog(text) {
   log.appendChild(line);
   log.scrollTop = log.scrollHeight;
 }
+// === Upload de áudio do mestre ===
+const audioInput = document.getElementById("audiofile");
+const sendAudioBtn = document.getElementById("sendAudio");
+
+sendAudioBtn?.addEventListener("click", async () => {
+  if (!audioInput.files.length) {
+    appendLog("⚠️ Nenhum arquivo selecionado.");
+    return;
+  }
+  const file = audioInput.files[0];
+  const formData = new FormData();
+  formData.append("audio", file);
+
+  try {
+    const res = await fetch("/upload", { method: "POST", body: formData });
+    if (!res.ok) throw new Error("Falha no upload");
+    appendLog(`🎵 Áudio "${file.name}" enviado com sucesso.`);
+  } catch (err) {
+    appendLog("Erro ao enviar áudio: " + err.message);
+  }
+});
+
 
 
