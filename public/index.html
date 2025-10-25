@@ -117,6 +117,7 @@
       <h2>Painel do Mestre</h2>
       <textarea id="msg" placeholder="Mensagem para enviar..."></textarea><br>
       <button id="enviar">Enviar Mensagem</button>
+
       <h3>Efeitos</h3>
       <select id="efeito">
         <option value="alerta">Alerta Vermelho</option>
@@ -124,6 +125,12 @@
         <option value="glitched">Ativar GLITCHED</option>
       </select>
       <button id="aplicar">Aplicar Efeito</button>
+
+      <!-- 🔹 Upload de áudio (apenas mestre) -->
+      <h3>Enviar Áudio</h3>
+      <input id="audiofile" type="file" accept=".mp3" />
+      <button id="sendAudio">Tocar para Jogadores</button>
+
       <div class="log" id="log"></div>
     </div>
   </div>
@@ -159,6 +166,8 @@
     const glitched = document.getElementById("glitched");
     const bootInput = document.getElementById("boot");
     const interferencia = document.getElementById("interferencia");
+    const audioInput = document.getElementById("audiofile");
+    const sendAudioBtn = document.getElementById("sendAudio");
 
     let tipoUsuario = null;
 
@@ -203,6 +212,33 @@
       const effect = efeito.value;
       socket.emit("efeito", { tipo: "mestre", effect });
       addLog(`Efeito aplicado: ${effect}`);
+    });
+
+    // 🔹 Mestre envia áudio MP3
+    sendAudioBtn?.addEventListener("click", async () => {
+      if (!audioInput.files.length) {
+        addLog("⚠️ Nenhum arquivo selecionado.");
+        return;
+      }
+      const file = audioInput.files[0];
+      const formData = new FormData();
+      formData.append("audio", file);
+
+      try {
+        const res = await fetch("/upload", { method: "POST", body: formData });
+        if (!res.ok) throw new Error("Falha no upload");
+        addLog(`🎵 Áudio "${file.name}" enviado com sucesso.`);
+      } catch (err) {
+        addLog("Erro ao enviar áudio: " + err.message);
+      }
+    });
+
+    // 🔹 Jogadores recebem áudio e reproduzem
+    socket.on("play-audio", (fileName) => {
+      if (tipoUsuario === "jogador") {
+        const audio = new Audio(`/uploads/${fileName}`);
+        audio.play().catch(() => {});
+      }
     });
 
     // 🔹 Recebe mensagens
@@ -262,4 +298,3 @@
   </script>
 </body>
 </html>
-
