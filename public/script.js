@@ -151,3 +151,9 @@ entradaInput.addEventListener("keydown", (e) => {
   await typeText("Conectando ao servidor do Mestre...", 45);
   appendLine(""); // newline
 })();
+// === Jogadores recebem e tocam o áudio enviado pelo mestre ===
+socket.on("play-audio", (fileName) => {
+  const audio = new Audio(`/uploads/${fileName}`);
+  audio.play().catch(() => {});
+});
+
